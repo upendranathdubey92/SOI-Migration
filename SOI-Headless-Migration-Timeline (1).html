@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="googlebot" content="noindex, nofollow" />
+<title>SOI — Headless Migration Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --primary:#95B836;
+    --primary-dark:#7a9d2b;
+    --primary-light:#eaf2d6;
+    --secondary:#E23C3C;
+    --accent:#FC5454;
+    --ink:#0f1419;
+    --ink-2:#2d3748;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --line-2:#f1f5f9;
+    --bg:#fafbfc;
+    --card:#ffffff;
+    --shadow-sm:0 1px 3px rgba(15,20,25,.04);
+    --shadow:0 4px 20px rgba(15,20,25,.06);
+    --shadow-lg:0 12px 40px rgba(15,20,25,.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  html,body{font-family:'Poppins',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:14.5px}
+  code,kbd{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--line-2);padding:1px 6px;border-radius:4px;color:var(--secondary)}
+  .container{max-width:1200px;margin:0 auto;padding:32px 24px 60px}
+
+  /* ============ HERO ============ */
+  .hero{position:relative;background:linear-gradient(120deg,#0f1419 0%,#1a2332 100%);color:#fff;border-radius:var(--radius);padding:48px 48px 42px;overflow:hidden;margin-bottom:36px}
+  .hero::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(149,184,54,.25) 0%,transparent 70%);border-radius:50%}
+  .hero::after{content:"";position:absolute;bottom:-150px;right:200px;width:300px;height:300px;background:radial-gradient(circle,rgba(226,60,60,.15) 0%,transparent 70%);border-radius:50%}
+  .hero-inner{position:relative;z-index:2}
+  .hero .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(149,184,54,.15);color:var(--primary);border:1px solid rgba(149,184,54,.3);padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:500;letter-spacing:.4px;text-transform:uppercase;margin-bottom:16px}
+  .hero .badge::before{content:"";width:6px;height:6px;background:var(--primary);border-radius:50%;box-shadow:0 0 8px var(--primary)}
+  .hero h1{font-size:42px;font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:14px}
+  .hero h1 span{background:linear-gradient(90deg,var(--primary),#c4e37a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .lede{font-size:15.5px;opacity:.85;max-width:720px;margin-bottom:28px}
+  .hero-meta{display:grid;grid-template-columns:repeat(4,auto);gap:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1)}
+  .hero-meta div b{display:block;font-size:22px;font-weight:700;color:#fff;margin-bottom:2px}
+  .hero-meta div span{font-size:11.5px;opacity:.65;text-transform:uppercase;letter-spacing:.6px}
+
+  /* ============ SECTION ============ */
+  section{background:var(--card);border-radius:var(--radius);padding:36px 40px;box-shadow:var(--shadow);margin-bottom:24px;border:1px solid var(--line-2)}
+  .sec-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
+  .sec-head h2{font-size:22px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:12px}
+  .sec-head h2 .n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:8px;font-size:12.5px;font-weight:600}
+  .sec-head p{color:var(--muted);font-size:13px;margin-top:4px;max-width:520px}
+  .sec-head .side{color:var(--muted);font-size:12px;text-align:right}
+  .sec-head .side b{color:var(--ink);font-weight:600}
+
+  /* ============ STATS ============ */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:8px}
+  .stat{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-radius:12px;padding:18px 20px;transition:transform .15s ease,box-shadow .15s ease;position:relative;overflow:hidden}
+  .stat:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .stat::after{content:"";position:absolute;top:0;right:0;width:4px;height:100%;background:var(--primary)}
+  .stat.red::after{background:var(--secondary)}
+  .stat.acc::after{background:var(--accent)}
+  .stat.dark::after{background:var(--ink-2)}
+  .stat b{display:block;font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-.5px;line-height:1}
+  .stat span{display:block;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:500}
+  .stat i{font-style:normal;font-size:11px;color:var(--primary);font-weight:600;margin-top:8px;display:block}
+
+  /* ============ ARCH ============ */
+  .arch{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch}
+  .arch-col{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-radius:12px;padding:22px 24px}
+  .arch-col.left{border-top:3px solid var(--secondary)}
+  .arch-col.right{border-top:3px solid var(--primary)}
+  .arch-col h4{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600;margin-bottom:4px}
+  .arch-col h3{font-size:16px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .arch-col h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--primary)}
+  .arch-col.left h3 .dot{background:var(--secondary)}
+  .arch-col ul{list-style:none}
+  .arch-col li{font-size:13px;color:var(--ink-2);padding:6px 0 6px 22px;position:relative;line-height:1.5}
+  .arch-col li::before{content:"→";position:absolute;left:0;top:6px;color:var(--primary);font-weight:600}
+  .arch-col.left li::before{color:var(--secondary)}
+  .arch-connect{display:flex;align-items:center;justify-content:center;position:relative}
+  .arch-connect::before{content:"";position:absolute;top:50%;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--secondary),var(--primary));border-radius:2px}
+  .arch-connect .chip{position:relative;background:#fff;border:2px solid var(--ink);color:var(--ink);padding:6px 10px;font-size:10px;font-weight:600;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;box-shadow:var(--shadow-sm)}
+
+  /* ============ TABLE ============ */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  thead th{background:var(--line-2);color:var(--ink);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  thead th:first-child{border-radius:8px 0 0 0}
+  thead th:last-child{border-radius:0 8px 0 0}
+  tbody td{padding:14px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfc}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+  .pill.green{background:var(--primary-light);color:var(--primary-dark)}
+  .pill.red{background:#fde3e3;color:#a5262d}
+  .pill.gray{background:var(--line-2);color:var(--ink-2)}
+
+  /* ============ PHASES ============ */
+  .phases{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .phase{border:1px solid var(--line);border-radius:12px;padding:20px 22px;background:#fff;transition:all .15s ease;position:relative;overflow:hidden}
+  .phase:hover{border-color:var(--primary);box-shadow:var(--shadow)}
+  .phase-num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--ink);color:#fff;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:10px}
+  .phase.p2 .phase-num{background:var(--primary)}
+  .phase.p3 .phase-num{background:var(--secondary)}
+  .phase.p4 .phase-num{background:var(--accent)}
+  .phase h5{font-size:14.5px;font-weight:600;margin-bottom:6px;padding-right:60px}
+  .phase p{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .phase .wk{position:absolute;top:20px;right:20px;font-size:10.5px;background:var(--line-2);color:var(--ink-2);padding:4px 9px;border-radius:12px;font-weight:600;letter-spacing:.3px}
+
+  /* ============ GANTT ============ */
+  .gantt-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .gantt-head{display:grid;grid-template-columns:200px 1fr;background:var(--line-2);border-bottom:1px solid var(--line)}
+  .gantt-head .lbl{padding:12px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-right:1px solid var(--line)}
+  .gantt-head .wks{display:grid;grid-template-columns:repeat(18,1fr)}
+  .gantt-head .wks span{padding:12px 0;text-align:center;font-size:10.5px;font-weight:600;color:var(--muted);border-left:1px solid var(--line)}
+  .gantt-head .wks span:first-child{border-left:none}
+  .gantt-row{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--line-2);align-items:center}
+  .gantt-row:last-child{border-bottom:none}
+  .gantt-row:hover{background:#fafbfc}
+  .gantt-row .lbl{padding:14px 16px;font-size:13px;font-weight:500;border-right:1px solid var(--line-2);color:var(--ink-2)}
+  .gantt-row .bars{position:relative;height:38px;background:repeating-linear-gradient(to right,transparent 0,transparent calc(100%/18 - 1px),var(--line-2) calc(100%/18 - 1px),var(--line-2) calc(100%/18))}
+  .bar{position:absolute;top:9px;height:20px;border-radius:6px;background:var(--primary);color:#fff;font-size:10.5px;font-weight:600;padding:0 10px;display:flex;align-items:center;box-shadow:0 2px 6px rgba(149,184,54,.35)}
+  .bar.red{background:var(--secondary);box-shadow:0 2px 6px rgba(226,60,60,.35)}
+  .bar.acc{background:var(--accent);box-shadow:0 2px 6px rgba(252,84,84,.35)}
+  .bar.ink{background:var(--ink);box-shadow:0 2px 6px rgba(15,20,25,.35)}
+  .gantt-legend{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .gantt-legend span{display:inline-flex;align-items:center;gap:6px}
+  .gantt-legend span::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--primary)}
+  .gantt-legend span.red::before{background:var(--secondary)}
+  .gantt-legend span.acc::before{background:var(--accent)}
+  .gantt-legend span.ink::before{background:var(--ink)}
+
+  /* ============ LISTS ============ */
+  .checklist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 24px}
+  .checklist li{font-size:13px;color:var(--ink-2);padding:9px 0 9px 28px;position:relative;border-bottom:1px dashed var(--line)}
+  .checklist li::before{content:"";position:absolute;left:0;top:11px;width:18px;height:18px;background:var(--primary);border-radius:50%;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round'><polyline points='20 6 9 17 4 12'/></svg>");background-size:12px;background-position:center;background-repeat:no-repeat}
+  .risks{list-style:none}
+  .risks li{font-size:13px;color:var(--ink-2);padding:14px 0 14px 40px;position:relative;border-bottom:1px solid var(--line-2)}
+  .risks li:last-child{border-bottom:none}
+  .risks li::before{content:"!";position:absolute;left:0;top:14px;width:24px;height:24px;background:linear-gradient(135deg,var(--secondary),var(--accent));color:#fff;border-radius:8px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(226,60,60,.3)}
+  .risks li b{color:var(--ink);font-weight:600}
+
+  /* ============ QUESTIONS ============ */
+  .q-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .q-card{border:1px solid var(--line);border-radius:12px;padding:22px;background:linear-gradient(180deg,#fff,#fafbfc)}
+  .q-card h4{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .q-card h4 .num{background:var(--ink);color:#fff;padding:2px 8px;border-radius:6px;font-size:10.5px}
+  .q-card ol{list-style:none;counter-reset:qq}
+  .q-card ol li{font-size:13px;color:var(--ink-2);padding:6px 0 6px 24px;position:relative;counter-increment:qq;line-height:1.5}
+  .q-card ol li::before{content:counter(qq);position:absolute;left:0;top:6px;width:18px;height:18px;background:var(--primary-light);color:var(--primary-dark);border-radius:50%;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center}
+
+  /* ============ TESTING ============ */
+  .test-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
+  .test-card{border:1px solid var(--line);border-radius:12px;padding:20px 22px;background:linear-gradient(180deg,#fff,#fafbfc);position:relative;overflow:hidden}
+  .test-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+  .test-card:nth-child(2)::before{background:var(--secondary)}
+  .test-card:nth-child(3)::before{background:var(--accent)}
+  .test-card:nth-child(4)::before{background:var(--ink)}
+  .test-badge{display:inline-block;background:var(--primary-light);color:var(--primary-dark);font-size:10px;font-weight:600;padding:3px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+  .test-badge.red{background:#fde3e3;color:#a5262d}
+  .test-badge.acc{background:#ffe5e5;color:#c62828}
+  .test-badge.ink{background:#e2e8f0;color:var(--ink)}
+  .test-card h4{font-size:15px;font-weight:600;margin-bottom:4px}
+  .test-stack{font-size:11.5px;color:var(--muted);margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+  .test-stack code{margin-right:4px}
+  .test-card ul{list-style:none}
+  .test-card li{font-size:12.5px;color:var(--ink-2);padding:5px 0 5px 16px;position:relative;line-height:1.55}
+  .test-card li::before{content:"•";position:absolute;left:2px;top:5px;color:var(--primary);font-weight:700;font-size:14px}
+  .test-timeline{background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:18px 22px}
+  .test-timeline h5{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:12px}
+  .tl-row{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:8px 0;border-bottom:1px dashed var(--line);align-items:flex-start}
+  .tl-row:last-child{border-bottom:none}
+  .tl-label{font-size:12px;font-weight:600;color:var(--primary-dark);background:var(--primary-light);padding:4px 10px;border-radius:6px;display:inline-block;width:fit-content}
+  .tl-desc{font-size:13px;color:var(--ink-2);line-height:1.5}
+
+  /* ============ CONTENT ARCH ============ */
+  .ca-headline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .ca-h-card{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .ca-h-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+  .ca-h-card.red::before{background:var(--secondary)}
+  .ca-h-card.acc::before{background:var(--accent)}
+  .ca-h-card.ink::before{background:var(--ink)}
+  .ca-h-card b{display:block;font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.5px;line-height:1}
+  .ca-h-card span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:500}
+  .ca-subhead{font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink);font-weight:600;margin:26px 0 10px;padding-left:12px;border-left:3px solid var(--primary)}
+  .ca-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .ca-table thead th{background:var(--line-2);color:var(--ink);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  .ca-table tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  .ca-table tbody tr:last-child td{border-bottom:none}
+  .ca-table tbody tr:hover{background:#fafbfc}
+  .ca-table td.right,.ca-table th.right{text-align:right}
+  .ca-hint{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+  .ca-sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .ca-sec-group{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .ca-sec-group h5{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+  .ca-sec-group ul{list-style:none}
+  .ca-sec-group li{font-size:12.5px;color:var(--ink-2);padding:5px 0 5px 14px;position:relative;line-height:1.5}
+  .ca-sec-group li::before{content:"→";position:absolute;left:0;top:5px;color:var(--primary);font-weight:700;font-size:11px}
+  .ca-sec-group code{font-size:11.5px;background:#fff;border:1px solid var(--line);padding:1px 5px;color:var(--ink-2)}
+  .ca-cpt-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .ca-cpt-col{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .ca-cpt-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:12px;padding:5px 10px;border-radius:6px;display:inline-block}
+  .ca-cpt-title.green{background:var(--primary-light);color:var(--primary-dark)}
+  .ca-cpt-title.gray{background:var(--line-2);color:var(--muted)}
+  .ca-cpt-list{list-style:none}
+  .ca-cpt-list li{font-size:12.5px;color:var(--ink-2);padding:5px 0 5px 16px;position:relative}
+  .ca-cpt-list li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;background:var(--primary);border-radius:50%}
+  .ca-cpt-list.muted li::before{background:var(--muted);opacity:.5}
+  .ca-cpt-list.muted li{color:var(--muted)}
+  .ca-cpt-list code{font-size:12px;background:#fff;border:1px solid var(--line);padding:1px 5px;color:var(--ink-2)}
+  .ca-takeaway{margin-top:22px;background:linear-gradient(180deg,var(--primary-light),#fafdf1);border:1px solid var(--primary);border-radius:12px;padding:18px 22px;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+  .ca-takeaway b{color:var(--primary-dark);font-weight:600}
+
+  /* ============ COST ============ */
+  .cost-headline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .cost-h-card{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .cost-h-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+  .cost-h-card.red::before{background:var(--secondary)}
+  .cost-h-card.acc::before{background:var(--accent)}
+  .cost-h-card.ink::before{background:var(--ink)}
+  .cost-h-card b{display:block;font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.5px;line-height:1}
+  .cost-h-card span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:500}
+  .cost-subhead{font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink);font-weight:600;margin:26px 0 10px;padding-left:12px;border-left:3px solid var(--primary)}
+  .cost-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .cost-table thead th{background:var(--line-2);color:var(--ink);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  .cost-table tbody td{padding:12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  .cost-table tbody tr:last-child td{border-bottom:none}
+  .cost-table td.right,.cost-table th.right{text-align:right}
+  .cost-note{font-size:11px;color:var(--muted);font-weight:400}
+  .cost-total td{background:#fafbfc;border-top:2px solid var(--primary) !important;padding:14px 12px !important}
+  .editable{background:#fffce8;border-radius:4px;position:relative}
+  .cost-hint{font-size:11.5px;color:var(--muted);margin-top:8px;font-style:italic}
+  .cost-grand{margin-top:24px;background:linear-gradient(135deg,#0f1419,#1a2332);border-radius:12px;padding:20px 24px;color:#fff}
+  .cost-grand-row{display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .cost-grand-row:last-child{border-bottom:none}
+  .cost-grand-row.total{margin-top:6px;padding-top:14px;border-top:2px solid var(--primary);font-size:16px}
+  .cost-grand-row span:last-child{color:var(--primary);font-weight:600}
+  .cost-callout{margin-top:20px;background:linear-gradient(180deg,var(--primary-light),#fafdf1);border:1px solid var(--primary);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--ink-2);line-height:1.6}
+  .cost-callout b{color:var(--primary-dark)}
+  .cost-scenarios{margin-top:22px}
+  .cost-scenarios h5{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:12px}
+  .cost-scen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .cost-scen{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .cost-scen-title{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:12px;line-height:1.4;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+  .cost-scen-body{display:flex;flex-direction:column;gap:6px}
+  .cost-scen-body span{font-size:12px;color:var(--muted)}
+  .cost-scen-total{color:var(--primary-dark) !important;font-weight:600;font-size:12.5px !important;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+
+  /* ============ CLAUDE CODE ============ */
+  .cc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px}
+  .cc-stat{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .cc-stat::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary)}
+  .cc-stat.red::before{background:var(--secondary)}
+  .cc-stat.acc::before{background:var(--accent)}
+  .cc-stat.ink::before{background:var(--ink)}
+  .cc-stat b{display:block;font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.5px;line-height:1}
+  .cc-stat span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:500}
+  .cc-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+  .cc-col{border-radius:12px;padding:20px 22px;border:1px solid var(--line)}
+  .cc-col.cc-good{background:linear-gradient(180deg,#f4fbe6,#fafdf1);border-color:rgba(149,184,54,.4)}
+  .cc-col.cc-bad{background:linear-gradient(180deg,#fef2f2,#fef8f8);border-color:rgba(226,60,60,.3)}
+  .cc-col h4{font-size:13.5px;font-weight:600;margin-bottom:12px;color:var(--ink)}
+  .cc-col.cc-good h4{color:var(--primary-dark)}
+  .cc-col.cc-bad h4{color:var(--secondary)}
+  .cc-col ul{list-style:none}
+  .cc-col li{font-size:12.5px;color:var(--ink-2);padding:6px 0 6px 20px;position:relative;border-bottom:1px dashed rgba(0,0,0,.06);line-height:1.5}
+  .cc-col li:last-child{border-bottom:none}
+  .cc-col.cc-good li::before{content:"+";position:absolute;left:0;top:5px;color:var(--primary-dark);font-weight:700;font-size:14px}
+  .cc-col.cc-bad li::before{content:"—";position:absolute;left:0;top:5px;color:var(--secondary);font-weight:700}
+  .cc-rules{margin-top:22px;background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .cc-rules h5{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:14px}
+  .cc-rule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .cc-rule{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative;padding-left:44px}
+  .cc-rule .n{position:absolute;left:12px;top:14px;width:24px;height:24px;background:var(--ink);color:#fff;border-radius:50%;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .cc-rule p{font-size:12px;color:var(--ink-2);line-height:1.5;margin:0}
+  .cc-callout{margin-top:22px;background:linear-gradient(180deg,var(--primary-light),#fafdf1);border:1px solid var(--primary);border-radius:12px;padding:18px 22px;font-size:13px;color:var(--ink-2);line-height:1.6}
+  .cc-callout b{color:var(--primary-dark);font-weight:600}
+
+  /* ============ FOOTER ============ */
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px;margin-top:12px;border-top:1px solid var(--line-2)}
+  footer b{color:var(--ink);font-weight:600}
+
+  @media print{
+    body{background:#fff}
+    section,.hero{box-shadow:none;break-inside:avoid;border:1px solid var(--line)}
+    .hero{background:var(--ink) !important;-webkit-print-color-adjust:exact}
+  }
+  @media (max-width:900px){
+    .hero h1{font-size:30px}
+    .hero-meta{grid-template-columns:repeat(2,1fr);gap:16px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .arch{grid-template-columns:1fr}
+    .arch-connect{padding:12px 0}
+    .arch-connect::before{display:none}
+    .phases,.q-grid,.checklist,.test-grid,.cc-split{grid-template-columns:1fr}
+    .cc-stats,.cc-rule-grid,.ca-headline{grid-template-columns:repeat(2,1fr)}
+    .ca-sec-grid,.ca-cpt-grid{grid-template-columns:1fr}
+    .tl-row{grid-template-columns:1fr;gap:6px}
+    .gantt-row,.gantt-head{grid-template-columns:120px 1fr}
+    .gantt-head .wks span{font-size:9px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <span class="badge">Internal Project · For PM Review</span>
+      <h1>SOI → <span>Headless</span> Migration</h1>
+      <p class="lede">In-house initiative to convert <b>spaceotechnologies.com</b> from WordPress monolith to a headless split — WordPress content API + Next.js 14 frontend. Follows the same blueprint we already shipped for <b>SOC v2</b>.</p>
+      <div class="hero-meta">
+        <div><b>18 wks</b><span>Realistic duration</span></div>
+        <div><b>~10</b><span>Unique page templates</span></div>
+        <div><b>749</b><span>URLs in scope</span></div>
+        <div><b>16</b><span>CPTs (8 public / 8 internal)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY / GIST -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2>Why This Migration — The Gist</h2>
+        <p>The one-paragraph version for anyone opening this doc: what we're changing, why it's worth doing, and what the business gets at the end.</p>
+      </div>
+    </div>
+
+    <p style="font-size:14.5px;color:var(--ink-2);line-height:1.65;margin-bottom:22px">
+      Today most pages on <b>spaceotechnologies.com</b> &mdash; services, solutions, hire, landing &mdash; are hand-coded <b>custom HTML</b> (only blogs use Gutenberg). Every non-blog edit means a developer editing raw HTML. We go <b>headless</b>: WordPress becomes a content API, a new <b>Next.js 14</b> front-end renders every page from reusable, field-driven components.
+    </p>
+
+    <div class="arch">
+      <div class="arch-col left">
+        <h4>Why now</h4>
+        <h3><span class="dot"></span> The problem today</h3>
+        <ul>
+          <li>Non-blog pages are hand-coded custom HTML &mdash; no Gutenberg.</li>
+          <li>Editing means changing raw HTML by hand &mdash; slow and easy to break.</li>
+          <li>Every page update needs a developer; editors are blocked.</li>
+        </ul>
+      </div>
+      <div class="arch-connect"><span class="chip">Headless split</span></div>
+      <div class="arch-col right">
+        <h4>The payoff</h4>
+        <h3><span class="dot"></span> After migrating</h3>
+        <ul>
+          <li>Editors update structured fields, not code &mdash; safe publishing on any page.</li>
+          <li>Faster site (Lighthouse &ge; 90) with 1:1 SEO across all 749 URLs.</li>
+          <li>Reuses the proven SOC v2 blueprint &mdash; lower risk.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ca-takeaway">
+      <b>Bottom line:</b> non-blog pages go from developer-only raw HTML to field-based editing &mdash; faster site, same SEO, delivered in <b>18 weeks</b> on a proven blueprint.
+    </div>
+  </section>
+
+
+  <!-- STATS -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">01</span> Live Site Snapshot</h2>
+        <p>Real numbers from spaceotechnologies.com sitemap, 20 Jul 2026.</p>
+      </div>
+      <div class="side"><b>Source</b><br>sitemap_index.xml</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>749</b><span>Indexed URLs</span></div>
+      <div class="stat red"><b>397</b><span>Blog Posts</span><i>1 template</i></div>
+      <div class="stat acc"><b>127</b><span>Static / Service</span></div>
+      <div class="stat dark"><b>8</b><span>Public CPTs to template</span></div>
+    </div>
+  </section>
+
+  <!-- WHAT NEEDS BUILDING -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">02</span> What Actually Needs Building</h2>
+        <p>749 URLs, but only ~10 unique templates and ~22 reusable sections. That's why a small effort ships a large site.</p>
+      </div>
+    </div>
+    <div class="ca-headline">
+      <div class="ca-h-card"><b>749</b><span>Live URLs</span></div>
+      <div class="ca-h-card red"><b>~10</b><span>Page templates</span></div>
+      <div class="ca-h-card acc"><b>~22</b><span>Reusable sections</span></div>
+      <div class="ca-h-card ink"><b>8</b><span>Public CPTs</span></div>
+    </div>
+    <h4 class="ca-subhead">10 templates cover every URL</h4>
+    <table class="ca-table">
+      <thead>
+        <tr><th style="width:44%">Template</th><th class="right">URLs covered</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>Blog Post</b></td><td class="right">397</td></tr>
+        <tr><td><b>Showcase</b></td><td class="right">65</td></tr>
+        <tr><td><b>Hire Developer</b></td><td class="right">61</td></tr>
+        <tr><td><b>Service Page (long-form + dev-language)</b></td><td class="right">~45</td></tr>
+        <tr><td><b>Glossary Entry</b></td><td class="right">29</td></tr>
+        <tr><td><b>Case Study</b></td><td class="right">18</td></tr>
+        <tr><td><b>Cost Calculator / Estimation</b></td><td class="right">15</td></tr>
+        <tr><td><b>Solution / Industry</b></td><td class="right">~15</td></tr>
+        <tr><td><b>Static (contact, about, etc.)</b></td><td class="right">~15</td></tr>
+        <tr><td><b>Homepage</b></td><td class="right">1</td></tr>
+      </tbody>
+    </table>
+    <div class="ca-takeaway">
+      <b>Takeaway:</b> 10 page templates + 22 section components (built once, composed per page via CMS fields) cover all 749 URLs &mdash; which is why an 18-week single-owner plan is realistic.
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">03</span> Architecture</h2>
+        <p>Two repos, one contract: WPGraphQL. Content in WordPress, presentation in Next.js. Mirrors SOC v2.</p>
+      </div>
+    </div>
+    <div class="arch">
+      <div class="arch-col left">
+        <h4>Backend</h4>
+        <h3><span class="dot"></span> soi-wp <span style="font-size:11px;color:var(--muted);font-weight:400">— headless CMS</span></h3>
+        <ul>
+          <li>WPGraphQL + ACF + JWT, Rank Math via GraphQL</li>
+          <li>FaustWP for previews &amp; auth</li>
+          <li>16 CPTs migrated with ACF field parity</li>
+          <li>Odoo lead endpoint stays PHP, called from Next.js</li>
+        </ul>
+      </div>
+      <div class="arch-connect"><span class="chip">GraphQL</span></div>
+      <div class="arch-col right">
+        <h4>Frontend</h4>
+        <h3><span class="dot"></span> soi-nextjs <span style="font-size:11px;color:var(--muted);font-weight:400">— presentation</span></h3>
+        <ul>
+          <li>Next.js 14 App Router (TypeScript)</li>
+          <li>Reusable components composed from ACF fields</li>
+          <li>ISR + revalidate webhook on WP saves</li>
+          <li>API routes: contact, calculator, sitemap, revalidate</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASES -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">04</span> Plan — 6 Phases in 18 Weeks</h2>
+        <p>Backend and frontend run in parallel from Week 2. Template build is the critical path.</p>
+      </div>
+    </div>
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-num">1</div><span class="wk">Wk 1</span>
+        <h5>Discovery &amp; Inventory</h5>
+        <p>Crawl 749 URLs, map CPTs + ACF fields, draft redirect map and GraphQL schema.</p>
+      </div>
+      <div class="phase p2">
+        <div class="phase-num">2</div><span class="wk">Wk 2–3</span>
+        <h5>WP Headless + Next.js Foundation</h5>
+        <p>Install WPGraphQL stack, migrate CPTs. Scaffold Next 14, design tokens, header/footer, base components.</p>
+      </div>
+      <div class="phase p3">
+        <div class="phase-num">3</div><span class="wk">Wk 4–11</span>
+        <h5>Templates (critical path)</h5>
+        <p>Build ~10 templates sequentially with unit tests. Content migration runs in parallel on the backend.</p>
+      </div>
+      <div class="phase p4">
+        <div class="phase-num">4</div><span class="wk">Wk 12–13</span>
+        <h5>Blog, Calculator, Forms, Odoo</h5>
+        <p>Blog templates (397 posts), PHP cost calculator ported to React, multi-step forms → Odoo.</p>
+      </div>
+      <div class="phase">
+        <div class="phase-num">5</div><span class="wk">Wk 14–16</span>
+        <h5>SEO + Regression</h5>
+        <p>749-URL redirect map, Rank Math parity, Playwright visual regression, Lighthouse ≥ 90.</p>
+      </div>
+      <div class="phase p3">
+        <div class="phase-num">6</div><span class="wk">Wk 17–18</span>
+        <h5>UAT &amp; Launch</h5>
+        <p>Staging UAT, editor training, DNS cutover, Search Console resubmit, 1-week hotfix window.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTING -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">05</span> Testing — Dev-Owned, 4 Layers</h2>
+        <p>No dedicated QA. Devs write and run all tests; CI coverage gates enforce quality (≥ 70% on utils &amp; critical components).</p>
+      </div>
+    </div>
+    <ul class="risks">
+      <li><b>Unit (Jest + RTL).</b> Utility functions, pure components, and the cost calculator (20+ input combinations vs legacy PHP). Runs on every commit.</li>
+      <li><b>Integration (Jest + MSW).</b> Page components against mocked WPGraphQL, API routes, and the form → Odoo flow.</li>
+      <li><b>E2E &amp; visual (Playwright).</b> Top 100 URLs pixel-diffed; critical flows across Chromium, WebKit, Firefox on every PR.</li>
+      <li><b>Backend / contract (PHPUnit + WPGraphQL).</b> Schema shape locked; SEO field presence checked per CPT.</li>
+    </ul>
+    <p style="margin-top:14px;font-size:12.5px;color:var(--muted)"><b>Trade-off:</b> with a 2-person team the peer-review pool is thin, so revenue-critical flows (calculator, Odoo lead form) get a cross-review from SOI's SEO / marketing owner before launch.</p>
+  </section>
+
+  <!-- DELIVERABLES -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">06</span> Deliverables</h2>
+        <p>What ships at Week 18.</p>
+      </div>
+    </div>
+    <ul class="checklist">
+      <li>Two production repos — <b>soi-wp</b> + <b>soi-nextjs</b></li>
+      <li>16 CPTs migrated with ACF parity via WPGraphQL</li>
+      <li>749 URLs live with 1:1 SEO parity + full 301 redirect map</li>
+      <li>Cost calculator + 15 estimation pages in React</li>
+      <li>Multi-step inquiry forms → Odoo preserved</li>
+      <li>Lighthouse ≥ 90, LCP &lt; 2.5s</li>
+      <li>Test suites (Jest, Playwright, PHPUnit) + CI coverage gate</li>
+      <li>Editor training doc + runbook + rollback plan</li>
+    </ul>
+  </section>
+
+  <!-- RISKS -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">07</span> Top Risks &amp; Mitigations</h2>
+        <p>Worth flagging up front.</p>
+      </div>
+    </div>
+    <ul class="risks">
+      <li><b>Single-owner build.</b> Any absence in a critical week delays launch. Mitigation: detailed commit history and inline decisions so work can be picked up.</li>
+      <li><b>Templates are the critical path (~8 weeks sequential).</b> One delay compounds downstream. Mitigation: freeze template scope after discovery — no mid-build redesigns.</li>
+      <li><b>SEO ranking dip at cutover.</b> Mitigation: 749-URL redirect map, staging schema validation, Search Console resubmit within 24h.</li>
+      <li><b>Cost-calculator logic drift.</b> Mitigation: snapshot tests vs 20+ legacy PHP outputs, plus double peer review before launch.</li>
+    </ul>
+  </section>
+
+  <!-- QUESTIONS -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <h2><span class="n">08</span> Questions Before Kick-off</h2>
+        <p>Answers unblock discovery and lock scope for the fixed 18-week plan.</p>
+      </div>
+    </div>
+    <div class="q-grid">
+      <div class="q-card">
+        <h4><span class="num">A</span> Scope &amp; Content</h4>
+        <ol>
+          <li>All 749 URLs in scope, or a curated launch subset?</li>
+          <li>Like-for-like migration, or redesigns bundled in?</li>
+          <li>Can editorial pause for a short content freeze near cutover?</li>
+        </ol>
+      </div>
+      <div class="q-card">
+        <h4><span class="num">B</span> Tech &amp; Integrations</h4>
+        <ol>
+          <li>Hosting target — Vercel, AWS, or existing infra?</li>
+          <li>Who owns the Odoo endpoint, credentials, and rate limits?</li>
+          <li>Keep the Multistep Form Builder or rebuild in React?</li>
+        </ol>
+      </div>
+      <div class="q-card">
+        <h4><span class="num">C</span> SEO &amp; Compliance</h4>
+        <ol>
+          <li>Is the Rank Math license portable to soi-wp?</li>
+          <li>Who signs off on the 749-URL redirect map?</li>
+          <li>Keep exit popup + cookie/consent behavior as-is?</li>
+        </ol>
+      </div>
+      <div class="q-card">
+        <h4><span class="num">D</span> Governance &amp; Success</h4>
+        <ol>
+          <li>Sprint length and demo cadence?</li>
+          <li>Post-launch stabilization window — 30 / 60 / 90 days?</li>
+          <li>Success metrics — speed, organic traffic, form conversion?</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>SOI Headless Migration Proposal</b> · Draft v8 · 20 Jul 2026 · Prepared by Upendra Nath Dubey · In-house project · Single-owner build · 18 weeks · 10 templates + 22 sections
+  </footer>
+
+</div>
+</body>
+</html>
